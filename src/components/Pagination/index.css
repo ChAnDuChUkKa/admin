@@ -1,0 +1,10 @@
+.button-item {
+  border-radius: 50%;
+  background-color: #66a3ff;
+  margin-left: 2%;
+}
+.active-button {
+  border: 3px solid #66a3ff;
+  background-color: #fff;
+  border-radius: 50%;
+}

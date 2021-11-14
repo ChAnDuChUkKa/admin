@@ -1,0 +1,14 @@
+.person-details {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.detail-of-person {
+  padding-left: 0%;
+}
+.active-check-box {
+  background-color: gray;
+}
+.check-box {
+  background-color: #fff;
+}

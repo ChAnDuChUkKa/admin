@@ -1,0 +1,56 @@
+.app-contianer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+  margin: 3%;
+}
+.details-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-left: 3%;
+  width: 85%;
+  background-size: cover;
+}
+.input-field {
+  width: 75%;
+  align-self: center;
+  height: 32px;
+  margin-left: 7%;
+  margin-top: 2%;
+}
+.heading {
+  height: 22px;
+  font-weight: 900;
+}
+
+.heading-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.pagination-container {
+  display: flex;
+}
+.buttons-container {
+  display: flex;
+  align-self: center;
+  justify-content: center;
+  margin-left: 25%;
+  justify-content: space-between;
+  align-items: center;
+}
+.disabled-button {
+  border: 1px solid #66a3ff;
+  background-color: darkgrey;
+  color: #fff;
+  border-radius: 50%;
+  cursor: not-allowed;
+}
+.delete-selected-button {
+  background-color: red;
+}
