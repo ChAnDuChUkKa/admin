@@ -14,10 +14,8 @@ class App extends Component {
     searchElement: '',
     activePage: 1,
     mailData: [],
-    totalList: [],
-    searchedList: [],
     isChecked: false,
-    editItemDetails: [],
+    isEdited: false,
   }
 
   componentDidMount() {
@@ -25,47 +23,27 @@ class App extends Component {
   }
 
   getDataFromApi = async () => {
-    const {isChecked} = this.state
+    const {isChecked, isEdited} = this.state
     const url = `https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json`
     const options = {
       method: 'GET',
     }
     const response = await fetch(url, options)
     const fetchedData = await response.json()
-    const limit = 10
-    const totalPages = Math.ceil(fetchedData.length / limit)
-    const totalItems = []
-    for (let index = 1; index < totalPages + 1; index += 1) {
-      totalItems.push(index)
-    }
     const fetchedDataWithCheck = fetchedData.map(eachData => ({
       id: eachData.id,
       name: eachData.name,
       email: eachData.email,
       role: eachData.role,
       isChecked,
+      isEdited,
     }))
-    this.setState({mailData: fetchedDataWithCheck, totalList: totalItems})
+    this.setState({mailData: fetchedDataWithCheck})
   }
 
   searchItem = event => {
-    const {mailData} = this.state
-    const filteredData = mailData.filter(
-      each =>
-        each.name.toLowerCase().includes(event.target.value.toLowerCase()) ||
-        each.email.toLowerCase().includes(event.target.value.toLowerCase()) ||
-        each.role.toLowerCase().includes(event.target.value.toLowerCase()),
-    )
-    const limit = 10
-    const filteredPages = Math.ceil(filteredData.length / limit)
-    const filteredList = []
-    for (let index = 1; index < filteredPages + 1; index += 1) {
-      filteredList.push(index)
-    }
     this.setState({
       searchElement: event.target.value,
-      totalList: filteredList,
-      searchedList: filteredData,
     })
   }
 
@@ -78,20 +56,15 @@ class App extends Component {
   }
 
   goToLastPage = () => {
-    const {mailData, searchedList, searchElement} = this.state
-    const pageNumber =
-      searchElement.length === 0
-        ? Math.ceil(mailData.length / 10)
-        : Math.ceil(searchedList.length / 10)
+    const searchedList = this.getSearchItems()
+    const pageNumber = Math.ceil(searchedList.length / 10)
     this.setState({activePage: pageNumber})
   }
 
   goToNextPage = () => {
-    const {activePage, mailData, searchedList, searchElement} = this.state
-    const pageNumber =
-      searchElement.length === 0
-        ? Math.ceil(mailData.length / 10)
-        : Math.ceil(searchedList.length / 10)
+    const {activePage} = this.state
+    const searchedList = this.getSearchItems()
+    const pageNumber = Math.ceil(searchedList.length / 10)
     if (pageNumber > activePage) {
       this.setState(prevState => ({activePage: prevState.activePage + 1}))
     }
@@ -105,16 +78,34 @@ class App extends Component {
   }
 
   onClickDelete = id => {
-    const {mailData} = this.state
-    const updatedList = mailData.filter(eachItem => eachItem.id !== id)
-    this.setState({mailData: updatedList, searchedList: updatedList})
+    const searchedList = this.getSearchItems()
+    const updatedList = searchedList.filter(eachItem => eachItem.id !== id)
+    this.setState({mailData: updatedList})
   }
 
   changeSelectAllCheckBox = () => {
-    this.setState(
-      prevState => ({isChecked: !prevState.isChecked}),
-      this.getDataFromApi,
-    )
+    const {activePage} = this.state
+    const searchedList = this.getSearchItems()
+    const offset = (activePage - 1) * 10
+    const listItems = searchedList.slice(offset, offset + 10)
+
+    /*  this.setState(prevState => ({
+      mailData: prevState.mailData.map(eachItem => {
+        if (eachItem.id <= offset && eachItem.id > offset - 10) {
+          return {...eachItem, isChecked: !eachItem.isChecked}
+        }
+        return eachItem
+      }),
+    }))
+*/
+    this.setState(prevState => ({
+      mailData: prevState.mailData.map(eachItem => {
+        if (listItems.includes(eachItem)) {
+          return {...eachItem, isChecked: !eachItem.isChecked}
+        }
+        return eachItem
+      }),
+    }))
   }
 
   onCheckSelect = id => {
@@ -129,36 +120,70 @@ class App extends Component {
   }
 
   deleteSelectedItems = () => {
-    const {mailData, searchElement, searchedList} = this.state
-    console.log(mailData)
-    const deleteToBeList =
-      searchElement.length === 0
-        ? mailData.filter(eachMail => !eachMail.isChecked)
-        : searchedList.filter(eachMail => !eachMail.isChecked)
-    console.log(deleteToBeList)
-
+    const searchedList = this.getSearchItems()
+    const deleteToBeList = searchedList.filter(eachMail => !eachMail.isChecked)
     this.setState({mailData: deleteToBeList})
   }
 
+  getSearchItems = () => {
+    const {searchElement, mailData} = this.state
+    const filteredData = mailData.filter(
+      each =>
+        each.name.toLowerCase().includes(searchElement) ||
+        each.email.toLowerCase().includes(searchElement) ||
+        each.role.toLowerCase().includes(searchElement),
+    )
+    return filteredData
+  }
+
+  onClickEdit = id => {
+    this.setState(prevState => ({
+      mailData: prevState.mailData.map(eachDataItem => {
+        if (id === eachDataItem.id) {
+          return {...eachDataItem, isEdited: !eachDataItem.isChecked}
+        }
+        return eachDataItem
+      }),
+    }))
+  }
+
+  saveDetails = data => {
+    const {id, nameInput, roleInput, emailInput} = data
+    console.log(data)
+    this.setState(prevState => ({
+      mailData: prevState.mailData.map(eachData => {
+        if (id === eachData.id) {
+          console.log(true)
+          return {
+            ...eachData,
+            name: nameInput,
+            email: emailInput,
+            role: roleInput,
+            isEdited: false,
+          }
+        }
+        return eachData
+      }),
+    }))
+  }
+
   render() {
-    const {
-      searchElement,
-      searchedList,
-      activePage,
-      totalList,
-      mailData,
-      selectAll,
-    } = this.state
-    const activeList = searchElement.length === 0 ? mailData : searchedList
-    const pageNumber = Math.ceil(activeList.length / 10)
+    const {searchElement, activePage} = this.state
+    const searchedList = this.getSearchItems()
     const limit = 10
+    const totalPages = Math.ceil(searchedList.length / limit)
+    const totalItems = []
+    for (let index = 1; index < totalPages + 1; index += 1) {
+      totalItems.push(index)
+    }
     const offset = (activePage - 1) * limit
-    const dataToShow = activeList.slice(offset, offset + limit)
+    const dataToShow = searchedList.slice(offset, offset + limit)
     const disabledPreviousButtons =
       activePage === 1 ? 'disabled-button' : 'button-item'
     const disabledNextButtons =
-      activePage === pageNumber ? 'disabled-button' : 'button-item'
-    console.log(dataToShow)
+      activePage === totalPages ? 'disabled-button' : 'button-item'
+    const activateMultipleDelete =
+      searchedList.length === 0 ? 'disabled-button' : 'delete-selected-button'
 
     return (
       <div className="app-container">
@@ -171,7 +196,11 @@ class App extends Component {
             className="input-field"
           />
           <div className="heading-container">
-            <input type="checkbox" onChange={this.changeSelectAllCheckBox} />
+            <input
+              type="checkbox"
+              onChange={this.changeSelectAllCheckBox}
+              name="multipleSelect"
+            />
             <p className="heading">Name</p>
             <p className="heading">Email</p>
             <p className="heading">Role</p>
@@ -184,17 +213,17 @@ class App extends Component {
               personDetails={eachPerson}
               onClickDelete={this.onClickDelete}
               onClickEdit={this.onClickEdit}
-              selectAll={selectAll}
               deleteSelectedItems={this.deleteSelectedItems}
               onCheckSelect={this.onCheckSelect}
-              mailData={mailData}
+              searchedList={searchedList}
+              saveDetails={this.saveDetails}
             />
           ))}
           <div className="pagination-container">
             <button
               type="button"
               onClick={this.deleteSelectedItems}
-              className="delete-selected-button"
+              className={activateMultipleDelete}
             >
               Delete Selected
             </button>
@@ -213,7 +242,7 @@ class App extends Component {
               >
                 <AiOutlineLeft className="previous" />
               </button>
-              {totalList.map(eachPage => (
+              {totalItems.map(eachPage => (
                 <Pagination
                   key={eachPage}
                   details={eachPage}

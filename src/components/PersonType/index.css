@@ -1,14 +1,37 @@
 .person-details {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   align-items: center;
 }
+
 .detail-of-person {
-  padding-left: 0%;
+  padding: 2%;
+  flex-wrap: wrap;
 }
+@media screen and (max-width: 768px) {
+  .detail-of-person {
+    width: 15%;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 10px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .email {
+    font-size: 8px;
+    margin-right: 5px;
+  }
+  .role {
+    margin-left: auto;
+  }
+}
+
 .active-check-box {
   background-color: gray;
 }
 .check-box {
   background-color: #fff;
+}
+.input-field {
+  width: auto;
 }
